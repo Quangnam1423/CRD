@@ -9,13 +9,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
 /**
  *
@@ -25,6 +22,10 @@ public class ServerConnect implements Runnable{
     
     private final ServerSocket serverSocket;
     private Socket socket;
+    private BufferedOutputStream bous;
+    private BufferedInputStream bin;
+    private DataInputStream din;
+    private DataOutputStream dous;
     private boolean clientConnect;
     private static final int port = 1234;
     private String password;
@@ -35,7 +36,7 @@ public class ServerConnect implements Runnable{
         this.serverSocket = new ServerSocket(port);
         System.out.println("Server dang lang nghe...");
         
-        this.clientConnect = true;
+        this.clientConnect = false;
     }
     
     @Override
@@ -46,16 +47,22 @@ public class ServerConnect implements Runnable{
             try {
                 this.socket = serverSocket.accept();
                 System.out.println("Client da ket noi toi Server thanh cong!");
-                DataInputStream din = new DataInputStream(socket.getInputStream());
+                this.din = new DataInputStream(socket.getInputStream());
+                this.dous = new DataOutputStream(socket.getOutputStream());
                 String pass = din.readUTF();
                 
                 if (pass.equals(this.password))
                 {
-                    clientConnect = false;
+                    clientConnect = true;
+                    
+                    this.dous.writeUTF("accepted");
+                    System.out.println("Chap nhan ket noi!");
                 }
                 
                 if (clientConnect)
                 {
+                } else {
+                    this.dous.writeUTF("refused");
                     this.socket.close();
                     System.out.println("Tu choi ket noi vi sai mat khau");
                 }

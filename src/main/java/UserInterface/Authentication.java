@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import Connection.ServerConnect;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
@@ -37,7 +38,8 @@ public class Authentication extends JFrame{
     private JTextField IdLabel;
     private JTextField ownPassword;
     private Socket socket;
-    private DataOutputStream out;
+    private DataOutputStream dout;
+    private DataInputStream din;
     
     public Authentication() throws IOException
     {
@@ -91,7 +93,7 @@ public class Authentication extends JFrame{
                     // Mở kết nối đến server sau khi xác thực thành công
                     // connectToServer(password);
                 } else {
-                    statusLabel.setText("Invalid credentials, try again.");
+                    statusLabel.setText("ID or password is incorrect.");
                 }
             }
         });  
@@ -100,16 +102,28 @@ public class Authentication extends JFrame{
     // Phương thức xác thực
     private boolean authenticate(String id, String password) {
         boolean checkValidConnect = true;
+        String serverMessage = null;
         try{
             this.socket = new Socket(id , 1234);
-            this.out = new DataOutputStream(socket.getOutputStream());
-            out.writeUTF(password);
-            out.flush();
-            System.out.println("Ket noi thanh cong den server");
+            this.dout = new DataOutputStream(socket.getOutputStream());
+            this.din = new DataInputStream(socket.getInputStream());
+            dout.writeUTF(password);
+            dout.flush();
+            serverMessage = din.readUTF();
         }catch (IOException e)
         {
             e.printStackTrace();
             checkValidConnect = false;
+        }
+        if (serverMessage.equals("refused"))
+        {
+            System.out.println("Ket noi da bi dong!");
+            checkValidConnect = false;
+        }
+        else if (serverMessage.equals("accepted"))
+        {
+            System.out.println("Server chap nhan ket noi!");
+            checkValidConnect = true;
         }
         return checkValidConnect;
     }
