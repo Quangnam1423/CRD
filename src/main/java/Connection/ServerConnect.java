@@ -4,6 +4,7 @@
  */
 package Connection;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,6 +15,8 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
+import ServerSide.*;
+
 /**
  *
  * @author suong
@@ -22,8 +25,6 @@ public class ServerConnect implements Runnable{
     
     private final ServerSocket serverSocket;
     private Socket socket;
-    private BufferedOutputStream bous;
-    private BufferedInputStream bin;
     private DataInputStream din;
     private DataOutputStream dous;
     private boolean clientConnect;
@@ -42,7 +43,7 @@ public class ServerConnect implements Runnable{
     @Override
     public void run()
     {
-        while(clientConnect)
+        while(!clientConnect)
         {
             try {
                 this.socket = serverSocket.accept();
@@ -50,6 +51,7 @@ public class ServerConnect implements Runnable{
                 this.din = new DataInputStream(socket.getInputStream());
                 this.dous = new DataOutputStream(socket.getOutputStream());
                 String pass = din.readUTF();
+                //System.out.println(pass);
                 
                 if (pass.equals(this.password))
                 {
@@ -57,6 +59,7 @@ public class ServerConnect implements Runnable{
                     
                     this.dous.writeUTF("accepted");
                     System.out.println("Chap nhan ket noi!");
+                    initConnection();
                 }
                 
                 if (clientConnect)
@@ -74,6 +77,34 @@ public class ServerConnect implements Runnable{
         }
 
         
+    }
+
+    private void initConnection()
+    {
+        Robot robot = null;
+        Rectangle rectangle = null;
+        try{
+            //System.out.println("Awaiting Connection from Client");
+            //socket=new ServerSocket(port);
+
+            GraphicsEnvironment gEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsDevice gDev = gEnv.getDefaultScreenDevice();
+
+            Dimension dim=Toolkit.getDefaultToolkit().getScreenSize();
+            String width=""+dim.getWidth();
+            String height=""+dim.getHeight();
+            dous.writeUTF(width);
+            dous.writeUTF(height);
+            rectangle=new Rectangle(dim);
+            robot=new Robot(gDev);
+
+            //drawGUI();
+
+            new SendScreen(socket,robot,rectangle);
+            new ReceiveEvents(socket,robot);
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
     }
     
     public boolean getClientConnect()

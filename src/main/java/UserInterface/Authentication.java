@@ -24,6 +24,8 @@ import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ClientSide.*;
+
 
 /**
  *
@@ -47,7 +49,7 @@ public class Authentication extends JFrame{
         setTitle("Authentication");
         setSize(600 , 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
         // Thanh phan cua giao dien
         IdField = new JTextField(15);
         passwordField = new JPasswordField(15);
@@ -67,16 +69,14 @@ public class Authentication extends JFrame{
         add(ownPassword);
         add(new JLabel("ID:"));
         add(IdField);
-        
+
         add(new JLabel("Password:"));
         add(passwordField);
         add(connectButton);
         add(statusLabel);
-        
+
         // khởi tạo server socket như một luồng chạy song song.
         startServerSocket();
-        
-        
 
         // Xử lý sự kiện khi nhấn nút Login
         connectButton.addActionListener(new ActionListener() {
@@ -90,14 +90,29 @@ public class Authentication extends JFrame{
                 isAuthenticated = authenticate(id, password);
                 if (isAuthenticated) {
                     statusLabel.setText("Login successful");
+
+                    //System.out.println(this.);
                     // Mở kết nối đến server sau khi xác thực thành công
                     // connectToServer(password);
+                    String width = "" , height = "";
+                    try{
+                        width = din.readUTF();
+                        height = din.readUTF();
+                    }
+                    catch(IOException exception){}
+
+                    if (socket != null && !socket.isClosed()) {
+                        new CreateFrame(socket, width, height);
+                    } else {
+                        statusLabel.setText("Connection failed: Socket is not available.");
+                    }
                 } else {
                     statusLabel.setText("ID or password is incorrect.");
                 }
             }
-        });  
+        });
     }
+
 
     // Phương thức xác thực
     private boolean authenticate(String id, String password) {
